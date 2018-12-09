@@ -1,0 +1,27 @@
+{
+    "name": "nicobatty/condition-checker",
+    "description": "",
+    "keywords": [
+      "condition"
+    ],
+    "type": "library",
+    "authors": [
+      {
+        "name": "Nicolas Batty"
+      }
+    ],
+    "require": {
+      "php": ">=7.1.0"
+    },
+    "require-dev": {
+      "phpunit/phpunit": "^7"
+    },
+    "autoload": {
+      "psr-4": {"NicoBatty\\ConditionChecker\\": "src/"}
+    },
+    "autoload-dev": {
+      "psr-4": {
+        "NicoBatty\\ConditionChecker\\Tests\\": "tests/"
+      }
+    }
+  }
