@@ -4,16 +4,16 @@ namespace NicoBatty\ConditionChecker;
 
 class MainChecker
 {
-    private $conditionGroup;
+    private $condition;
 
     private $data = [];
 
     /**
-     * @var ConditionGroup
+     * @var ConditionInterface
      */
-    public function setConditionGroup(ConditionGroup $conditionGroup): void
+    public function setCondition(ConditionInterface $condition): void
     {
-        $this->conditionGroup = $conditionGroup;
+        $this->condition = $condition;
     }
 
     /**
@@ -29,7 +29,7 @@ class MainChecker
      */
     public function getAllErrors(): array
     {
-        return $this->conditionGroup->verifyData($this->data);
+        return $this->condition->verifyData($this->data);
     }
 
     /**

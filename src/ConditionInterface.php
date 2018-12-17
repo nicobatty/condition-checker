@@ -4,5 +4,11 @@ namespace NicoBatty\ConditionChecker;
 
 interface ConditionInterface
 {
-    public function verifyData(array $data);
+    /**
+     * Return the error messages as a list
+     *
+     * @param array $data
+     * @return array
+     */
+    public function verifyData(array $data): array;
 }

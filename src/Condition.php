@@ -5,41 +5,48 @@
 
 namespace NicoBatty\ConditionChecker;
 
-class Condition implements ConditionInterface
+abstract class Condition implements ConditionInterface
 {
-    const EQUAL_OPERATOR = 'equal';
+    /**
+     * Condition Key
+     *
+     * @var string
+     */
+    protected $key;
 
-    const DEFAULT_EQUAL_ERROR_MSG = 'The "{key}" attribute is not equal to "{value}"';
+    protected $values = [];
 
-    private $key;
+    protected $errorMessage;
 
-    private $values = [];
-
-    private $operator;
-
-    private $errorMessage;
-
-    public function __construct(string $key)
+    /**
+     * @param string $key
+     * @param string $operator
+     * @param mixed $values
+     * @param string $errorMessage
+     */
+    public function __construct(string $key, $values, string $errorMessage = null)
     {
         $this->key = $key;
-    }
-
-    public function equal($value, string $errorMessage = self::DEFAULT_EQUAL_ERROR_MSG): void
-    {
-        $this->condition(self::EQUAL_OPERATOR, [$value], $errorMessage);
-    }
-
-    protected function condition(string $operator, $values, string $errorMessage): void
-    {
-        $this->values = $values;
-        $this->errorMessage = $errorMessage;
         $this->operator = $operator;
+        $this->values = (array)$values;
+        $this->errorMessage = $errorMessage ?: $this->getDefaultMessage();
     }
 
-    public function verifyData(array $data)
+    protected function getDefaultMessage(): string
     {
-        return $this->isValid($data) ? $this->getErrorMessage($data) : null;
+        return 'The "{key}" attribute is not valid.';
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function verifyData(array $data): array
+    {
+        $value = $this->getValueFromData($data);
+        return $this->isValid($value) ? [] : [$this->getErrorMessage($data)];
+    }
+
+    public abstract function isValid($value): bool;
 
     public function getErrorMessage(array $data)
     {
@@ -49,17 +56,8 @@ class Condition implements ConditionInterface
         return $replaceAll;
     }
 
-    public function isValid(array $data): bool
+    protected function getValueFromData(array $data)
     {
-        switch ($this->operator) {
-            case self::EQUAL_OPERATOR:
-                return $this->isEqual($data);
-        }
-    }
-
-    protected function isEqual(array $data): bool
-    {
-        $value = $data[$this->key] ?? null;
-        return $value == $this->values[0];
+        return $data[$this->key] ?? null;
     }
 }
