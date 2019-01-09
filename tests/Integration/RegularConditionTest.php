@@ -7,8 +7,10 @@
 
 namespace NicoBatty\ConditionChecker\Tests\Integration\Parser;
 
-use NicoBatty\ConditionChecker\Condition\EqualCondition;
-use NicoBatty\ConditionChecker\Condition\GreaterEqualCondition;
+use NicoBatty\ConditionChecker\Condition;
+use NicoBatty\ConditionChecker\ConditionFactory;
+use NicoBatty\ConditionChecker\Operator\EqualOperator;
+use NicoBatty\ConditionChecker\Operator\GreaterEqualOperator;
 use NicoBatty\ConditionChecker\ConditionGroup\AllConditionGroup;
 use NicoBatty\ConditionChecker\MainChecker;
 use PHPUnit\Framework\TestCase;
@@ -37,9 +39,14 @@ class RegularConditionTest extends TestCase
 
     protected function getConditionGroup()
     {
-        $skuCondition = new EqualCondition('sku', 'AZERTY2');
-        $weightCondition = new EqualCondition('weight', 0.1);
-        $priceCondition = new GreaterEqualCondition('price', 20.6);
+        $conditionFactory = new ConditionFactory([
+            '=' => EqualOperator::class,
+            '>=' => GreaterEqualOperator::class
+        ]);
+
+        $skuCondition = $conditionFactory->create('sku', '=', 'AZERTY2');
+        $weightCondition = $conditionFactory->create('weight', '=', 0.1);
+        $priceCondition = $conditionFactory->create('price', '>=', 20.6);
 
         $group = new AllConditionGroup();
         $group->addCondition($skuCondition);
@@ -52,8 +59,8 @@ class RegularConditionTest extends TestCase
     protected function getExpectedErrors()
     {
         return [
-            'The "sku" attribute is not equal to "QWERTY1"',
-            'The "price" attribute must be greater or equal than "20.5"'
+            'The "sku" attribute is not equal to "QWERTY1".',
+            'The "price" attribute must be greater or equal than "20.5".'
         ];
     }
 }

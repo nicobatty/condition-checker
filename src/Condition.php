@@ -5,7 +5,9 @@
 
 namespace NicoBatty\ConditionChecker;
 
-abstract class Condition implements ConditionInterface
+use NicoBatty\ConditionChecker\Operator\OperatorInterface;
+
+class Condition implements ConditionInterface
 {
     /**
      * Condition Key
@@ -14,22 +16,24 @@ abstract class Condition implements ConditionInterface
      */
     protected $key;
 
-    protected $values = [];
+    protected $operator;
+
+    protected $values;
 
     protected $errorMessage;
 
     /**
      * @param string $key
-     * @param string $operator
+     * @param OperatorInterface $operator
      * @param mixed $values
      * @param string $errorMessage
      */
-    public function __construct(string $key, $values, string $errorMessage = null)
+    public function __construct(string $key, OperatorInterface $operator, $values, string $errorMessage = null)
     {
         $this->key = $key;
         $this->operator = $operator;
-        $this->values = (array)$values;
-        $this->errorMessage = $errorMessage ?: $this->getDefaultMessage();
+        $this->values = $values;
+        $this->errorMessage = $errorMessage ?: $this->operator->getDefaultMessage();
     }
 
     protected function getDefaultMessage(): string
@@ -43,10 +47,8 @@ abstract class Condition implements ConditionInterface
     public function verifyData(array $data): array
     {
         $value = $this->getValueFromData($data);
-        return $this->isValid($value) ? [] : [$this->getErrorMessage($data)];
+        return $this->operator->isValid($value, $this->values) ? [] : [$this->getErrorMessage($data)];
     }
-
-    public abstract function isValid($value): bool;
 
     public function getErrorMessage(array $data)
     {
