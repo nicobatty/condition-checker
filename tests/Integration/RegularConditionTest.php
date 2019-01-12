@@ -8,11 +8,11 @@
 namespace NicoBatty\ConditionChecker\Tests\Integration\Parser;
 
 use NicoBatty\ConditionChecker\Condition;
-use NicoBatty\ConditionChecker\ConditionFactory;
 use NicoBatty\ConditionChecker\Operator\EqualOperator;
 use NicoBatty\ConditionChecker\Operator\GreaterEqualOperator;
 use NicoBatty\ConditionChecker\ConditionGroup\AllConditionGroup;
 use NicoBatty\ConditionChecker\MainChecker;
+use NicoBatty\ConditionChecker\RegularMessageResolver;
 use PHPUnit\Framework\TestCase;
 
 class RegularConditionTest extends TestCase
@@ -39,14 +39,25 @@ class RegularConditionTest extends TestCase
 
     protected function getConditionGroup()
     {
-        $conditionFactory = new ConditionFactory([
-            '=' => EqualOperator::class,
-            '>=' => GreaterEqualOperator::class
-        ]);
 
-        $skuCondition = $conditionFactory->create('sku', '=', 'AZERTY2');
-        $weightCondition = $conditionFactory->create('weight', '=', 0.1);
-        $priceCondition = $conditionFactory->create('price', '>=', 20.6);
+        $equalOperator = new EqualOperator();
+        $gteOperator = new GreaterEqualOperator();
+
+        $regularMessageResolver = new RegularMessageResolver('The "{key}" attribute is not equal to "{value}".');
+
+        $gteMessageResolver = new RegularMessageResolver('The "{key}" attribute is not greater or equal than "{value}".');
+
+        $skuCondition = new Condition($equalOperator, $regularMessageResolver);
+        $skuCondition->setKey('sku');
+        $skuCondition->setValue('AZERTY2');
+
+        $weightCondition = new Condition($equalOperator, $regularMessageResolver);
+        $weightCondition->setKey('weight');
+        $weightCondition->setValue(0.1);
+
+        $priceCondition = new Condition($gteOperator, $gteMessageResolver);
+        $priceCondition->setKey('price');
+        $priceCondition->setValue(20.6);
 
         $group = new AllConditionGroup();
         $group->addCondition($skuCondition);
@@ -59,8 +70,8 @@ class RegularConditionTest extends TestCase
     protected function getExpectedErrors()
     {
         return [
-            'The "sku" attribute is not equal to "QWERTY1".',
-            'The "price" attribute must be greater or equal than "20.5".'
+            'The "sku" attribute is not equal to "AZERTY2".',
+            'The "price" attribute is not greater or equal than "20.6".'
         ];
     }
 }

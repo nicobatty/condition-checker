@@ -22,10 +22,12 @@ class ConditionFactory
         $this->operatorClasses = $operatorClasses;
     }
 
-    public function create(string $key, string $operatorKey, $value)
+    public function create(string $key, string $operatorKey, $value, MessageResolverInterface $messageResolver)
     {
         $operator = $this->getOperatorObject($operatorKey);
-        $condition = new Condition($key, $operator, $value);
+        $condition = new Condition($operator, $messageResolver);
+        $condition->setKey($key);
+        $condition->setValue($value);
 
         return $condition;
     }

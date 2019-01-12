@@ -7,5 +7,7 @@ namespace NicoBatty\ConditionChecker\Operator;
 
 interface OperatorInterface
 {
+    public function getDefaultMessage(): string;
+
     public function isValid($value, $values): bool;
 }

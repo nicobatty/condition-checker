@@ -9,6 +9,14 @@ use NicoBatty\ConditionChecker\Operator\OperatorInterface;
 
 class Condition implements ConditionInterface
 {
+
+    protected $operator;
+
+    /**
+     * @var MessageResolverInterface
+     */
+    private $messageResolver;
+
     /**
      * Condition Key
      *
@@ -16,29 +24,32 @@ class Condition implements ConditionInterface
      */
     protected $key;
 
-    protected $operator;
+    protected $value;
 
-    protected $values;
-
-    protected $errorMessage;
+    /**
+     * @param OperatorInterface $operator
+     * @param MessageResolverInterface $messageResolver
+     */
+    public function __construct(OperatorInterface $operator, MessageResolverInterface $messageResolver)
+    {
+        $this->operator = $operator;
+        $this->messageResolver = $messageResolver;
+    }
 
     /**
      * @param string $key
-     * @param OperatorInterface $operator
-     * @param mixed $values
-     * @param string $errorMessage
      */
-    public function __construct(string $key, OperatorInterface $operator, $values, string $errorMessage = null)
+    public function setKey(string $key): void
     {
         $this->key = $key;
-        $this->operator = $operator;
-        $this->values = $values;
-        $this->errorMessage = $errorMessage ?: $this->operator->getDefaultMessage();
     }
 
-    protected function getDefaultMessage(): string
+    /**
+     * @param mixed $value
+     */
+    public function setValue($value): void
     {
-        return 'The "{key}" attribute is not valid.';
+        $this->value = $value;
     }
 
     /**
@@ -47,15 +58,15 @@ class Condition implements ConditionInterface
     public function verifyData(array $data): array
     {
         $value = $this->getValueFromData($data);
-        return $this->operator->isValid($value, $this->values) ? [] : [$this->getErrorMessage($data)];
+        if (!$this->operator->isValid($value, $this->value)) {
+            return [$this->getResolvedMessage($data)];
+        }
+        return [];
     }
 
-    public function getErrorMessage(array $data)
+    protected function getResolvedMessage(array $data): string
     {
-        $replaceKey = str_replace('{key}', $this->key, $this->errorMessage);
-        $replaceAll = str_replace('{value}', $data[$this->key], $replaceKey);
-        
-        return $replaceAll;
+        return $this->messageResolver->getResolvedMessage($this->key, $data, $this->value);
     }
 
     protected function getValueFromData(array $data)
