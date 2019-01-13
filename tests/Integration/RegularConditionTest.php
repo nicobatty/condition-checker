@@ -43,9 +43,13 @@ class RegularConditionTest extends TestCase
         $equalOperator = new EqualOperator();
         $gteOperator = new GreaterEqualOperator();
 
-        $regularMessageResolver = new RegularMessageResolver('The "{key}" attribute is not equal to "{value}".');
+        $regularMessageResolver = new RegularMessageResolver(
+            'The "%key" attribute of value "%actual" is not equal to "%expected".'
+        );
 
-        $gteMessageResolver = new RegularMessageResolver('The "{key}" attribute is not greater or equal than "{value}".');
+        $gteMessageResolver = new RegularMessageResolver(
+            'The "%key" attribute of value "%actual" is not greater or equal than "%expected".'
+        );
 
         $skuCondition = new Condition($equalOperator, $regularMessageResolver);
         $skuCondition->setKey('sku');
@@ -70,8 +74,8 @@ class RegularConditionTest extends TestCase
     protected function getExpectedErrors()
     {
         return [
-            'The "sku" attribute is not equal to "AZERTY2".',
-            'The "price" attribute is not greater or equal than "20.6".'
+            'The "sku" attribute of value "QWERTY1" is not equal to "AZERTY2".',
+            'The "price" attribute of value "20.5" is not greater or equal than "20.6".'
         ];
     }
 }

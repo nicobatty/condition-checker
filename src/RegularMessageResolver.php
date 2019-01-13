@@ -18,11 +18,19 @@ class RegularMessageResolver implements MessageResolverInterface
         $this->template = $template;
     }
 
-    public function getResolvedMessage($key, $data, $values)
+    public function getResolvedMessage(string $key, $data, $values): string
     {
-        $replacedKey = str_replace('{key}', $key, $this->template);
-        $replacedValue = str_replace('{value}', $values, $replacedKey);
+        $toReplace = $this->getToReplaceValues($key, $data, $values);
 
-        return $replacedValue;
+        return str_replace(array_keys($toReplace), array_values($toReplace), $this->template);
+    }
+
+    protected function getToReplaceValues(string $key, $data, $values): array
+    {
+        return [
+            '%key' => $key,
+            '%actual' => $data[$key],
+            '%expected' => $values
+        ];
     }
 }
