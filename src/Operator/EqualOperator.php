@@ -2,14 +2,15 @@
 
 namespace NicoBatty\ConditionChecker\Operator;
 
-class EqualOperator implements OperatorInterface
+class EqualOperator extends Operator
 {
+
     public function getDefaultMessage(): string
     {
-        return 'The "{key}" attribute is not equal to "{value}".';
+        return 'The "%key" attribute of value "%actual" is not equal to "%expected".';
     }
 
-    public function isValid($value, $values): bool
+    public function verify($value, $values): bool
     {
         return $value == $values;
     }

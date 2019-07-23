@@ -2,16 +2,16 @@
 
 namespace NicoBatty\ConditionChecker\Condition;
 
-use NicoBatty\ConditionChecker\Condition;
+use NicoBatty\ConditionChecker\Operator\Operator;
 
-class InCondition extends Condition
+class InOperator extends Operator
 {
-    protected function getDefaultMessage(): string
+    public function getDefaultMessage(): string
     {
         return 'The "{key}" attribute is not part of {value}.';
     }
 
-    public function isValid($value, $values): bool
+    public function verify($value, $values): bool
     {
         return in_array($value, $values);
     }

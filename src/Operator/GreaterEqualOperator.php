@@ -2,14 +2,14 @@
 
 namespace NicoBatty\ConditionChecker\Operator;
 
-class GreaterEqualOperator implements OperatorInterface
+class GreaterEqualOperator extends Operator
 {
     public function getDefaultMessage(): string
     {
-        return 'The "{key}" attribute must be greater or equal than "{value}".';
+        return 'The "%key" attribute of value "%actual" is not greater or equal than "%expected".';
     }
 
-    public function isValid($value, $values): bool
+    public function verify($value, $values): bool
     {
         return $value >= $values;
     }

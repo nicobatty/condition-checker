@@ -24,7 +24,7 @@ abstract class ConditionGroup implements ConditionInterface
      */
     public function getConditions(): array
     {
-        return $this->getConditions();
+        return $this->conditions;
     }
 
     /**

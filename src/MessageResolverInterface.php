@@ -11,5 +11,11 @@ namespace NicoBatty\ConditionChecker;
 
 interface MessageResolverInterface
 {
-    public function getResolvedMessage(string $key, $data, $values): string;
+    /**
+     * @param Condition $condition
+     * @param $actual
+     * @param $data
+     * @return string
+     */
+    public function getResolvedMessage(Condition $condition, $actual, $data): string;
 }
