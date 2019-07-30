@@ -2,14 +2,27 @@
 
 namespace NicoBatty\ConditionChecker;
 
-abstract class ConditionGroup implements ConditionInterface
+use NicoBatty\ConditionChecker\GroupType\GroupTypeInterface;
+
+class ConditionGroup implements ConditionInterface
 {
+
     /**
      * List of conditions in the group
      *
      * @var ConditionInterface[]
      */
     protected $conditions = [];
+
+    /**
+     * @var GroupTypeInterface
+     */
+    protected $groupType;
+
+    public function __construct(GroupTypeInterface $groupType)
+    {
+        $this->groupType = $groupType;
+    }
 
     /**
      * @param ConditionInterface $condition
@@ -33,5 +46,13 @@ abstract class ConditionGroup implements ConditionInterface
     public function setConditions(array $conditions): void
     {
         $this->conditions = $conditions;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function verifyData(array $data): array
+    {
+        return $this->groupType->verifyConditionGroupData($this, $data);
     }
 }

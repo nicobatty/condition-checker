@@ -10,8 +10,6 @@ use NicoBatty\ConditionChecker\Operator\OperatorInterface;
 class Condition implements ConditionInterface
 {
 
-    const KEY_SEPERATOR = '.';
-
     protected $operator;
 
     /**

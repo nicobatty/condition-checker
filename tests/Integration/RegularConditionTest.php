@@ -7,20 +7,23 @@
 
 namespace NicoBatty\ConditionChecker\Tests\Integration\Parser;
 
-use NicoBatty\ConditionChecker\Condition;
 use NicoBatty\ConditionChecker\ConditionFactory;
+use NicoBatty\ConditionChecker\ConditionGroupFactory;
 use NicoBatty\ConditionChecker\Formatter\CurrencyFormatter;
+use NicoBatty\ConditionChecker\GroupType\AllGroupType;
+use NicoBatty\ConditionChecker\GroupType\AnyGroupType;
 use NicoBatty\ConditionChecker\KeyPathResolver;
 use NicoBatty\ConditionChecker\Operator\EqualOperator;
 use NicoBatty\ConditionChecker\Operator\GreaterEqualOperator;
-use NicoBatty\ConditionChecker\ConditionGroup\AllConditionGroup;
 use NicoBatty\ConditionChecker\MainChecker;
-use NicoBatty\ConditionChecker\Operator\OperatorResolver;
 use NicoBatty\ConditionChecker\RegularMessageResolver;
 use PHPUnit\Framework\TestCase;
 
 class RegularConditionTest extends TestCase
 {
+    /**
+     * @throws \Exception
+     */
     public function testConditionCheck()
     {
         $conditionChecker = new MainChecker();
@@ -39,18 +42,59 @@ class RegularConditionTest extends TestCase
                 'value' => 20.5,
                 'currency' => 'EUR'
             ],
-            'weight' => 0.1,
+            'weight' => 0.9,
             'type' => 'T-shirt'
         ];
     }
 
+    /**
+     * @return \NicoBatty\ConditionChecker\ConditionGroup
+     * @throws \Exception
+     */
     protected function getConditionGroup()
+    {
+        $group = $this->getConditionGroupFactory()->create([
+            'group' => 'all',
+            'conditions' => [
+                [
+                    'group' => 'any',
+                    'conditions' => [
+                        [
+                            'key' => 'type',
+                            'operator' => 'neq',
+                            'value' => 'Sweater',
+                        ],
+                        [
+                            'key' => 'weight',
+                            'operator' => 'lt',
+                            'value' => 0.4,
+                        ]
+                    ]
+                ],
+                [
+                    'key' => 'sku',
+                    'operator' => 'eq',
+                    'value' => 'AZERTY2',
+                ],
+                [
+                    'key' => 'price.value',
+                    'operator' => 'gte',
+                    'value' => 20.6,
+                    'format' => 'currency',
+                ]
+            ]
+        ]);
+
+        return $group;
+    }
+
+    protected function getConditionGroupFactory(): ConditionGroupFactory
     {
         $keyPathResolver = new KeyPathResolver();
 
         $operators = [
-            'eq' =>  new EqualOperator(),
-            'neq' =>  new EqualOperator(true),
+            'eq' => new EqualOperator(),
+            'neq' => new EqualOperator(true),
             'gte' => new GreaterEqualOperator(),
             'lt' => new GreaterEqualOperator(true),
         ];
@@ -60,35 +104,19 @@ class RegularConditionTest extends TestCase
         ];
 
         $messageResolvers = [
-            ConditionFactory::DEFAULT_RESOLVER_KEY => new RegularMessageResolver($formatters)
+            ConditionFactory::DEFAULT_RESOLVER_KEY => new RegularMessageResolver($formatters),
         ];
 
         $conditionFactory = new ConditionFactory($keyPathResolver, $operators, $messageResolvers);
 
+        $groupTypes = [
+            'all' => new AllGroupType(),
+            'any' => new AnyGroupType(),
+        ];
 
-        $conditions[] = $conditionFactory->create([
-            'key' => 'sku',
-            'operator' => 'eq',
-            'value' => 'AZERTY2'
-        ]);
+        $conditionGroupFactory = new ConditionGroupFactory($conditionFactory, $groupTypes);
 
-        $conditions[] = $conditionFactory->create([
-            'key' => 'weight',
-            'operator' => 'eq',
-            'value' => 0.1
-        ]);
-
-        $conditions[] = $conditionFactory->create([
-            'key' => 'price.value',
-            'operator' => 'gte',
-            'value' => 20.6,
-            'format' => 'currency'
-        ]);
-
-        $group = new AllConditionGroup();
-        $group->setConditions($conditions);
-
-        return $group;
+        return $conditionGroupFactory;
     }
 
     protected function getExpectedErrors()

@@ -5,10 +5,10 @@ namespace NicoBatty\ConditionChecker;
 interface ConditionInterface
 {
     /**
-     * Return the error messages as a list
+     * Verify if there are any errors for this specific data set
      *
-     * @param array $data
-     * @return array
+     * @param array $data set
+     * @return array of errors, an empty array if no errors are found.
      */
     public function verifyData(array $data): array;
 }
