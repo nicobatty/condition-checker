@@ -4,12 +4,15 @@ namespace NicoBatty\ConditionChecker;
 
 class MainChecker
 {
+    /**
+     * @var ConditionInterface
+     */
     private $condition;
 
     private $data = [];
 
     /**
-     * @var ConditionInterface
+     * @param ConditionInterface $condition
      */
     public function setCondition(ConditionInterface $condition): void
     {

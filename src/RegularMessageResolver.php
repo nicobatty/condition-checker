@@ -8,29 +8,46 @@
 
 namespace NicoBatty\ConditionChecker;
 
+use NicoBatty\ConditionChecker\Formatter\FormatterInterface;
 
 class RegularMessageResolver implements MessageResolverInterface
 {
-    protected $template;
+    private $formatters;
 
-    public function __construct(string $template)
+    /**
+     * RegularMessageResolver constructor.
+     * @param array $formatters
+     */
+    public function __construct(array $formatters)
     {
-        $this->template = $template;
+        $this->formatters = $formatters;
     }
 
-    public function getResolvedMessage(string $key, $data, $values): string
+    /**
+     * {@inheritDoc}
+     */
+    public function getResolvedMessage(Condition $condition, $actual, $data): string
     {
-        $toReplace = $this->getToReplaceValues($key, $data, $values);
+        $key = $condition->getKey();
+        $template = $condition->getTemplate();
+        $value = $condition->getValue();
+        $formatter = $this->getFormatter($condition);
+        $toReplace = $this->getToReplaceValues($key, $data, $value, $actual, $formatter);
 
-        return str_replace(array_keys($toReplace), array_values($toReplace), $this->template);
+        return str_replace(array_keys($toReplace), array_values($toReplace), $template);
     }
 
-    protected function getToReplaceValues(string $key, $data, $values): array
+    protected function getFormatter(Condition $condition)
+    {
+        return $this->formatters[$condition->getFormat()] ?? null;
+    }
+
+    protected function getToReplaceValues(string $key, $data, $value, $actual, FormatterInterface $formatter = null): array
     {
         return [
             '%key' => $key,
-            '%actual' => $data[$key],
-            '%expected' => $values
+            '%actual' => $formatter ? $formatter->format($key, $data, $actual) : $actual,
+            '%expected' => $formatter ? $formatter->format($key, $data, $value) : $value
         ];
     }
 }

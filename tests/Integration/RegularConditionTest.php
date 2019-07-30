@@ -7,16 +7,23 @@
 
 namespace NicoBatty\ConditionChecker\Tests\Integration\Parser;
 
-use NicoBatty\ConditionChecker\Condition;
+use NicoBatty\ConditionChecker\ConditionFactory;
+use NicoBatty\ConditionChecker\ConditionGroupFactory;
+use NicoBatty\ConditionChecker\Formatter\CurrencyFormatter;
+use NicoBatty\ConditionChecker\GroupType\AllGroupType;
+use NicoBatty\ConditionChecker\GroupType\AnyGroupType;
+use NicoBatty\ConditionChecker\KeyPathResolver;
 use NicoBatty\ConditionChecker\Operator\EqualOperator;
 use NicoBatty\ConditionChecker\Operator\GreaterEqualOperator;
-use NicoBatty\ConditionChecker\ConditionGroup\AllConditionGroup;
 use NicoBatty\ConditionChecker\MainChecker;
 use NicoBatty\ConditionChecker\RegularMessageResolver;
 use PHPUnit\Framework\TestCase;
 
 class RegularConditionTest extends TestCase
 {
+    /**
+     * @throws \Exception
+     */
     public function testConditionCheck()
     {
         $conditionChecker = new MainChecker();
@@ -31,51 +38,92 @@ class RegularConditionTest extends TestCase
         return [
             'sku' => 'QWERTY1',
             'name' => 'Say My Name T-shirt',
-            'price' => 20.5,
-            'weight' => 0.1,
+            'price' => [
+                'value' => 20.5,
+                'currency' => 'EUR'
+            ],
+            'weight' => 0.9,
             'type' => 'T-shirt'
         ];
     }
 
+    /**
+     * @return \NicoBatty\ConditionChecker\ConditionGroup
+     * @throws \Exception
+     */
     protected function getConditionGroup()
     {
-
-        $equalOperator = new EqualOperator();
-        $gteOperator = new GreaterEqualOperator();
-
-        $regularMessageResolver = new RegularMessageResolver(
-            'The "%key" attribute of value "%actual" is not equal to "%expected".'
-        );
-
-        $gteMessageResolver = new RegularMessageResolver(
-            'The "%key" attribute of value "%actual" is not greater or equal than "%expected".'
-        );
-
-        $skuCondition = new Condition($equalOperator, $regularMessageResolver);
-        $skuCondition->setKey('sku');
-        $skuCondition->setValue('AZERTY2');
-
-        $weightCondition = new Condition($equalOperator, $regularMessageResolver);
-        $weightCondition->setKey('weight');
-        $weightCondition->setValue(0.1);
-
-        $priceCondition = new Condition($gteOperator, $gteMessageResolver);
-        $priceCondition->setKey('price');
-        $priceCondition->setValue(20.6);
-
-        $group = new AllConditionGroup();
-        $group->addCondition($skuCondition);
-        $group->addCondition($weightCondition);
-        $group->addCondition($priceCondition);
+        $group = $this->getConditionGroupFactory()->create([
+            'group' => 'all',
+            'conditions' => [
+                [
+                    'group' => 'any',
+                    'conditions' => [
+                        [
+                            'key' => 'type',
+                            'operator' => 'neq',
+                            'value' => 'Sweater',
+                        ],
+                        [
+                            'key' => 'weight',
+                            'operator' => 'lt',
+                            'value' => 0.4,
+                        ]
+                    ]
+                ],
+                [
+                    'key' => 'sku',
+                    'operator' => 'eq',
+                    'value' => 'AZERTY2',
+                ],
+                [
+                    'key' => 'price.value',
+                    'operator' => 'gte',
+                    'value' => 20.6,
+                    'format' => 'currency',
+                ]
+            ]
+        ]);
 
         return $group;
+    }
+
+    protected function getConditionGroupFactory(): ConditionGroupFactory
+    {
+        $keyPathResolver = new KeyPathResolver();
+
+        $operators = [
+            'eq' => new EqualOperator(),
+            'neq' => new EqualOperator(true),
+            'gte' => new GreaterEqualOperator(),
+            'lt' => new GreaterEqualOperator(true),
+        ];
+
+        $formatters = [
+            'currency' => new CurrencyFormatter($keyPathResolver),
+        ];
+
+        $messageResolvers = [
+            ConditionFactory::DEFAULT_RESOLVER_KEY => new RegularMessageResolver($formatters),
+        ];
+
+        $conditionFactory = new ConditionFactory($keyPathResolver, $operators, $messageResolvers);
+
+        $groupTypes = [
+            'all' => new AllGroupType(),
+            'any' => new AnyGroupType(),
+        ];
+
+        $conditionGroupFactory = new ConditionGroupFactory($conditionFactory, $groupTypes);
+
+        return $conditionGroupFactory;
     }
 
     protected function getExpectedErrors()
     {
         return [
             'The "sku" attribute of value "QWERTY1" is not equal to "AZERTY2".',
-            'The "price" attribute of value "20.5" is not greater or equal than "20.6".'
+            'The "price.value" attribute of value "20.5 EUR" is not greater or equal than "20.6 EUR".'
         ];
     }
 }
